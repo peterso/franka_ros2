@@ -41,6 +41,7 @@ add_library(
         SHARED
         src/gravity_compensation_example_controller.cpp
         src/joint_impedance_example_controller.cpp
+        src/joint_impedance_multiverse_controller.cpp
         src/joint_velocity_example_controller.cpp
         src/joint_velocity_multiverse_controller.cpp
         src/joint_position_example_controller.cpp

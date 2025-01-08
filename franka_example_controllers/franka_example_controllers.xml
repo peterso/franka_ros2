@@ -11,6 +11,12 @@
             The joint impedance example controller moves joint 4 and 5 in a very compliant periodic movement.
         </description>
     </class>
+    <class name="franka_example_controllers/JointImpedanceMultiverseController"
+           type="franka_example_controllers::JointImpedanceMultiverseController" base_class_type="controller_interface::ControllerInterface">
+        <description>
+            The joint impedance Multiverse controller moves joints in a very compliant movement.
+        </description>
+    </class>
     <class name="franka_example_controllers/JointVelocityExampleController"
            type="franka_example_controllers::JointVelocityExampleController" base_class_type="controller_interface::ControllerInterface">
         <description>
