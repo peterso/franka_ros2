@@ -76,7 +76,6 @@ def robot_description_dependent_nodes_spawner(
             parameters=[franka_controllers,
                         {'robot_description': robot_description},
                         {'arm_id': arm_id},
-                        {'load_gripper': load_gripper},
                         ],
             remappings=[('joint_states', 'franka/joint_states')],
             output={
@@ -175,7 +174,21 @@ def generate_launch_description():
              name='rviz2',
              arguments=['--display-config', rviz_file],
              condition=IfCondition(use_rviz)
-             )
+        ),
+        Node(package='tf2_ros',
+             executable='static_transform_publisher',
+             name='static_transform_publisher',
+             # arguments=['0.04942707', '-0.03909064', '0.05819646', '0.002116072405098864', '0.002824207288523506', '0.7116453569847929', '0.7025300221148947', 'fr3_hand', 'camera_color_optical_frame'],
+            #  arguments=['0.04709281', '-0.03748801', '0.05934611', '0.0029840862591150232', '0.004646368592743477', '0.706862710398108', '0.7073292126985418', 'fr3_hand', 'camera_color_optical_frame'],
+             arguments=['0.05016829', '-0.03866155', '0.05437667', '0.002074031001570875', '-0.00021473254337633918', '0.7074948905278843', '0.7067153827123596', 'fr3_hand', 'camera_color_optical_frame'],
+             output='screen',
+        ),
+        Node(package='tf2_ros',
+             executable='static_transform_publisher',
+             name='static_transform_publisher_2',
+             arguments=['0.015', '0.0', '0.0', '0.002', '0.001', '-0.01', '1.00', 'camera_color_optical_frame', 'camera_depth_optical_frame'],
+             output='screen',
+        )
 
     ])
 

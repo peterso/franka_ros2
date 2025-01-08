@@ -99,6 +99,7 @@ void Robot::writeOnceJointVelocities(const std::array<double, 7>& velocities) {
 
   // If you are experiencing issues with robot error. You can try activating the rate limiter.
   // Rate limiter is default deactivated.
+  //velocity_command_rate_limit_active_= true; Don't activate this line without how to proceed 
   if (velocity_command_rate_limit_active_) {
     velocity_command.dq = franka::limitRate(
         franka::computeUpperLimitsJointVelocity(current_state_.q_d),

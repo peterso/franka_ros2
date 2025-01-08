@@ -15,6 +15,8 @@
   <depend>rclcpp_lifecycle</depend>
   <depend>franka_msgs</depend>
   <depend>franka_semantic_components</depend>
+  <depend>geometry_msgs</depend> <!-- new code: Added this line for the planar pose publisher -->
+
 
 
   <test_depend>ament_cmake_clang_format</test_depend>

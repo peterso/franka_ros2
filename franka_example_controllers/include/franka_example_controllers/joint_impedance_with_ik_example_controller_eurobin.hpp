@@ -33,7 +33,7 @@ namespace franka_example_controllers {
  * pose. Desired joint positions are fed to the impedance control law together with the current
  * joint velocities to calculate the desired joint torques.
  */
-class JointImpedanceWithIKExampleController : public controller_interface::ControllerInterface {
+class JointImpedanceWithIKExampleControllerEurobin : public controller_interface::ControllerInterface {
  public:
   using Vector7d = Eigen::Matrix<double, 7, 1>;
   [[nodiscard]] controller_interface::InterfaceConfiguration command_interface_configuration()
@@ -46,9 +46,21 @@ class JointImpedanceWithIKExampleController : public controller_interface::Contr
   CallbackReturn on_configure(const rclcpp_lifecycle::State& previous_state) override;
   CallbackReturn on_activate(const rclcpp_lifecycle::State& previous_state) override;
   CallbackReturn on_deactivate(const rclcpp_lifecycle::State& previous_state) override;
+  
+  //-----------customised code begin-----------
+  // New method to reset elapsed time
+  void reset_elapsed_time() { elapsed_time_ = 0.0; }
+  //-----------customised code end-----------
+
 
  private:
+
   void update_joint_states();
+  
+  //-----------customised code begin-----------
+  void poseCallback(const geometry_msgs::msg::Pose::SharedPtr msg);
+  //-----------customised code end-----------
+
 
   /**
    * @brief Calculates the new pose based on the initial pose.

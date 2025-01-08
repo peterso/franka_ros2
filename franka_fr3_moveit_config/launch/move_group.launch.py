@@ -39,12 +39,10 @@ def load_yaml(package_name, file_path):
 
 def generate_launch_description():
     robot_ip_parameter_name = 'robot_ip'
-    load_gripper_parameter_name = 'load_gripper'
     use_fake_hardware_parameter_name = 'use_fake_hardware'
     fake_sensor_commands_parameter_name = 'fake_sensor_commands'
 
     robot_ip = LaunchConfiguration(robot_ip_parameter_name)
-    load_gripper = LaunchConfiguration(load_gripper_parameter_name)
     use_fake_hardware = LaunchConfiguration(use_fake_hardware_parameter_name)
     fake_sensor_commands = LaunchConfiguration(
         fake_sensor_commands_parameter_name)
@@ -64,8 +62,7 @@ def generate_launch_description():
             ' ',
             franka_xacro_file,
             ' ros2_control:=false',
-            ' hand:=',
-            load_gripper,
+            ' hand:=true',
             ' arm_id:=fr3',
             ' robot_ip:=',
             robot_ip,
@@ -86,7 +83,7 @@ def generate_launch_description():
 
     robot_description_semantic_command = Command(
         [FindExecutable(name='xacro'), ' ',
-         franka_semantic_xacro_file, ' hand:=', load_gripper]
+         franka_semantic_xacro_file, ' hand:=true']
     )
 
     # Use ParameterValue here as well if needed

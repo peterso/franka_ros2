@@ -13,12 +13,13 @@
 // limitations under the License.
 
 #include <franka_example_controllers/default_robot_behavior_utils.hpp>
-#include <franka_example_controllers/joint_impedance_with_ik_example_controller.hpp>
+#include <franka_example_controllers/joint_impedance_with_ik_example_controller_eurobin.hpp>
 
 #include <cassert>
 #include <cmath>
 #include <exception>
 #include <string>
+#include "geometry_msgs/msg/pose.hpp"
 
 #include <chrono>
 
@@ -28,7 +29,7 @@ using Vector7d = Eigen::Matrix<double, 7, 1>;
 namespace franka_example_controllers {
 
 controller_interface::InterfaceConfiguration
-JointImpedanceWithIKExampleController::command_interface_configuration() const {
+JointImpedanceWithIKExampleControllerEurobin::command_interface_configuration() const {
   controller_interface::InterfaceConfiguration config;
   config.type = controller_interface::interface_configuration_type::INDIVIDUAL;
   for (int i = 1; i <= num_joints_; ++i) {
@@ -37,8 +38,13 @@ JointImpedanceWithIKExampleController::command_interface_configuration() const {
   return config;
 }
 
+//------------customised code begin------------
+geometry_msgs::msg::Pose target_pose_;  // For storing the target pose
+rclcpp::Subscription<geometry_msgs::msg::Pose>::SharedPtr pose_subscriber_; // Subscriber for planned pose
+//------------customised code end------------
+
 controller_interface::InterfaceConfiguration
-JointImpedanceWithIKExampleController::state_interface_configuration() const {
+JointImpedanceWithIKExampleControllerEurobin::state_interface_configuration() const {
   controller_interface::InterfaceConfiguration config;
   config.type = controller_interface::interface_configuration_type::INDIVIDUAL;
   config.names = franka_cartesian_pose_->get_state_interface_names();
@@ -58,7 +64,7 @@ JointImpedanceWithIKExampleController::state_interface_configuration() const {
   return config;
 }
 
-void JointImpedanceWithIKExampleController::update_joint_states() {
+void JointImpedanceWithIKExampleControllerEurobin::update_joint_states() {
   for (auto i = 0; i < num_joints_; ++i) {
     // TODO(yazi_ba) Can we get the state from its name?
     const auto& position_interface = state_interfaces_.at(16 + i);
@@ -70,24 +76,59 @@ void JointImpedanceWithIKExampleController::update_joint_states() {
   }
 }
 
-Eigen::Vector3d JointImpedanceWithIKExampleController::compute_new_position() {
+//---------customised code begin-------
+void JointImpedanceWithIKExampleControllerEurobin::poseCallback(const geometry_msgs::msg::Pose::SharedPtr msg) {
+  target_pose_ = *msg; // Store the received pose
+  //elapsed_time_ = 0.0; // Reset elapsed time to zero
+  //reset_elapsed_time(); // Call the function to reset elapsed time
+}
+//-------customised code end--------
+
+Eigen::Vector3d JointImpedanceWithIKExampleControllerEurobin::compute_new_position() {
   elapsed_time_ = elapsed_time_ + trajectory_period_;
-  double radius = 0.1;
+  // double radius = 0.1;
 
-  double angle = M_PI / 4 * (1 - std::cos(M_PI / 5.0 * elapsed_time_));
+  // double angle = M_PI / 4 * (1 - std::cos(M_PI / 5.0 * elapsed_time_));
 
-  double delta_x = radius * std::sin(angle);
-  double delta_z = radius * (std::cos(angle) - 1);
+  // double delta_x = radius * std::sin(angle);
+  // double delta_z = radius * (std::cos(angle) - 1);
+  
+  Eigen::Vector3d pos_init;
+  pos_init = position_;
+  double T = 10;
+  double time = elapsed_time_;
+  
+  //std::cout<<"check_point"<</n;
 
-  Eigen::Vector3d new_position = position_;
-  new_position.x() -= delta_x;
-  new_position.z() -= delta_z;
+  if (time > T) time =T;
+
+  Eigen::Vector3d new_position;
+  //Eigen::Vector3d pos_target(0.4164, 0.0154, 0.1869);
+  Eigen::Vector3d pos_target(target_pose_.position.x, target_pose_.position.y, target_pose_.position.z);
+
+  //RCLCPP_DEBUG_STREAM(node->get_logger(), "my message" << 4);
+  //RCLCPP_INFO(get_node()->get_logger(), "Elapsed time: " << elapsed_time_ << ", Current position: " << pos_target);
+
+  std::cout<<"check_point="<<pos_target<<"/n";
+
+  double pos_x = pos_init(0) + ((3*pow(time,2))/(pow(T,2)) - (2*pow(time,3))/pow(T,3))*(pos_target(0)-pos_init(0));
+  double pos_y = pos_init(1) + ((3*pow(time,2))/(pow(T,2)) - (2*pow(time,3))/pow(T,3))*(pos_target(1)-pos_init(1));
+  double pos_z = pos_init(2) + ((3*pow(time,2))/(pow(T,2)) - (2*pow(time,3))/pow(T,3))*(pos_target(2)-pos_init(2));    
+  
+  new_position(0) = pos_x;
+  new_position(1) = pos_y;
+  new_position(2) = pos_z;
+
+
+
+  // new_position.x() -= delta_x;
+  // new_position.z() -= delta_z;
 
   return new_position;
 }
 
 std::shared_ptr<moveit_msgs::srv::GetPositionIK::Request>
-JointImpedanceWithIKExampleController::create_ik_service_request(
+JointImpedanceWithIKExampleControllerEurobin::create_ik_service_request(
     const Eigen::Vector3d& position,
     const Eigen::Quaterniond& orientation,
     const std::vector<double>& joint_positions_current,
@@ -116,7 +157,7 @@ JointImpedanceWithIKExampleController::create_ik_service_request(
   return service_request;
 }
 
-Vector7d JointImpedanceWithIKExampleController::compute_torque_command(
+Vector7d JointImpedanceWithIKExampleControllerEurobin::compute_torque_command(
     const Vector7d& joint_positions_desired,
     const Vector7d& joint_positions_current,
     const Vector7d& joint_velocities_current) {
@@ -131,7 +172,7 @@ Vector7d JointImpedanceWithIKExampleController::compute_torque_command(
   return tau_d_calculated;
 }
 
-controller_interface::return_type JointImpedanceWithIKExampleController::update(
+controller_interface::return_type JointImpedanceWithIKExampleControllerEurobin::update(
     const rclcpp::Time& /*time*/,
     const rclcpp::Duration& /*period*/) {
   if (initialization_flag_) {
@@ -141,10 +182,15 @@ controller_interface::return_type JointImpedanceWithIKExampleController::update(
   }
   update_joint_states();
 
-  Eigen::Vector3d new_position = compute_new_position();
+//---------customised code begin-------
+  // Eigen::Vector3d new_position = compute_new_position();
+  Eigen::Vector3d new_position_(target_pose_.position.x,target_pose_.position.y,target_pose_.position.z);
+  Eigen::Vector4d new_orientation_(target_pose_.orientation.x, target_pose_.orientation.y, target_pose_.orientation.z, target_pose_.orientation.w);
+  orientation_ = new_orientation_;
+//---------customised code end-------
 
   auto service_request =
-      create_ik_service_request(new_position, orientation_, joint_positions_current_,
+      create_ik_service_request(new_position_, orientation_, joint_positions_current_,
                                 joint_velocities_current_, joint_efforts_current_);
 
   using ServiceResponseFuture = rclcpp::Client<moveit_msgs::srv::GetPositionIK>::SharedFuture;
@@ -179,7 +225,7 @@ controller_interface::return_type JointImpedanceWithIKExampleController::update(
   return controller_interface::return_type::OK;
 }
 
-CallbackReturn JointImpedanceWithIKExampleController::on_init() {
+CallbackReturn JointImpedanceWithIKExampleControllerEurobin::on_init() {
   franka_cartesian_pose_ =
       std::make_unique<franka_semantic_components::FrankaCartesianPoseInterface>(
           franka_semantic_components::FrankaCartesianPoseInterface(k_elbow_activated_));
@@ -187,7 +233,7 @@ CallbackReturn JointImpedanceWithIKExampleController::on_init() {
   return CallbackReturn::SUCCESS;
 }
 
-bool JointImpedanceWithIKExampleController::assign_parameters() {
+bool JointImpedanceWithIKExampleControllerEurobin::assign_parameters() {
   arm_id_ = get_node()->get_parameter("arm_id").as_string();
   auto k_gains = get_node()->get_parameter("k_gains").as_double_array();
   auto d_gains = get_node()->get_parameter("d_gains").as_double_array();
@@ -216,7 +262,7 @@ bool JointImpedanceWithIKExampleController::assign_parameters() {
   return true;
 }
 
-CallbackReturn JointImpedanceWithIKExampleController::on_configure(
+CallbackReturn JointImpedanceWithIKExampleControllerEurobin::on_configure(
     const rclcpp_lifecycle::State& /*previous_state*/) {
   if (!assign_parameters()) {
     return CallbackReturn::FAILURE;
@@ -253,10 +299,19 @@ CallbackReturn JointImpedanceWithIKExampleController::on_configure(
   return CallbackReturn::SUCCESS;
 }
 
-CallbackReturn JointImpedanceWithIKExampleController::on_activate(
+CallbackReturn JointImpedanceWithIKExampleControllerEurobin::on_activate(
     const rclcpp_lifecycle::State& /*previous_state*/) {
   initialization_flag_ = true;
   elapsed_time_ = 0.0;
+
+
+  //------------customised code start------------
+  // Create the subscriber for the planned pose
+  pose_subscriber_ = get_node()->create_subscription<geometry_msgs::msg::Pose>(
+    "target_pose", rclcpp::QoS(10),
+    std::bind(&JointImpedanceWithIKExampleControllerEurobin::poseCallback, this, std::placeholders::_1));
+  //------------customised code end------------
+
   dq_filtered_.setZero();
   joint_positions_desired_.reserve(num_joints_);
   joint_positions_current_.reserve(num_joints_);
@@ -269,7 +324,7 @@ CallbackReturn JointImpedanceWithIKExampleController::on_activate(
   return CallbackReturn::SUCCESS;
 }
 
-controller_interface::CallbackReturn JointImpedanceWithIKExampleController::on_deactivate(
+controller_interface::CallbackReturn JointImpedanceWithIKExampleControllerEurobin::on_deactivate(
     const rclcpp_lifecycle::State& /*previous_state*/) {
   franka_cartesian_pose_->release_interfaces();
   return CallbackReturn::SUCCESS;
@@ -278,5 +333,5 @@ controller_interface::CallbackReturn JointImpedanceWithIKExampleController::on_d
 }  // namespace franka_example_controllers
 #include "pluginlib/class_list_macros.hpp"
 // NOLINTNEXTLINE
-PLUGINLIB_EXPORT_CLASS(franka_example_controllers::JointImpedanceWithIKExampleController,
+PLUGINLIB_EXPORT_CLASS(franka_example_controllers::JointImpedanceWithIKExampleControllerEurobin,
                        controller_interface::ControllerInterface)

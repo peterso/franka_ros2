@@ -25,6 +25,16 @@ find_package(Eigen3 REQUIRED)
 find_package(franka_semantic_components REQUIRED)
 find_package(moveit_core REQUIRED)
 find_package(moveit_msgs REQUIRED)
+# ----------- New Code to Add Planar Pose Publisher -----------
+find_package(geometry_msgs REQUIRED)  # Added dependency for geometry_msgs
+# ----------- End of New Code -----------
+
+# Multiverse
+set(MULTIVERSE_DIR /home/rmilnuc3/eurobin/Multiverse/multiverse)
+
+include_directories(
+  ${MULTIVERSE_DIR}/src/multiverse_client/include
+)
 
 add_library(
         ${PROJECT_NAME}
@@ -32,16 +42,25 @@ add_library(
         src/gravity_compensation_example_controller.cpp
         src/joint_impedance_example_controller.cpp
         src/joint_velocity_example_controller.cpp
+        src/joint_velocity_multiverse_controller.cpp
         src/joint_position_example_controller.cpp
+        src/joint_position_multiverse_controller.cpp
         src/cartesian_velocity_example_controller.cpp
         src/cartesian_pose_example_controller.cpp
         src/joint_impedance_with_ik_example_controller.cpp
+        src/joint_impedance_with_ik_example_controller_eurobin.cpp
         src/cartesian_elbow_example_controller.cpp
         src/cartesian_orientation_example_controller.cpp
         src/elbow_example_controller.cpp
         src/model_example_controller.cpp
         src/move_to_start_example_controller.cpp
         src/motion_generator.cpp)
+
+target_link_libraries(
+        ${PROJECT_NAME}
+        ${MULTIVERSE_DIR}/lib/libstdc++/libmultiverse_client_json.so
+)
+
 target_include_directories(
         ${PROJECT_NAME}
         PUBLIC
@@ -59,7 +78,6 @@ ament_target_dependencies(
         moveit_core
         moveit_msgs
 )
-
 pluginlib_export_plugin_description_file(
         controller_interface franka_example_controllers.xml)
 
