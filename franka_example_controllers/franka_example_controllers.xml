@@ -89,6 +89,12 @@
             The move to start example controller moves the robot into default pose.
         </description>
     </class>
+    <class name="franka_example_controllers/MoveToStartMultiverseController"
+           type="franka_example_controllers::MoveToStartMultiverseController" base_class_type="controller_interface::ControllerInterface">
+        <description>
+            The move to start multiverse controller moves the robot into human pose.
+        </description>
+    </class>
     <class name="franka_example_controllers/ModelExampleController"
            type="franka_example_controllers::ModelExampleController" base_class_type="controller_interface::ControllerInterface">
         <description>

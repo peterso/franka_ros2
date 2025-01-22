@@ -55,6 +55,7 @@ add_library(
         src/elbow_example_controller.cpp
         src/model_example_controller.cpp
         src/move_to_start_example_controller.cpp
+        src/move_to_start_multiverse_controller.cpp
         src/motion_generator.cpp)
 
 target_link_libraries(

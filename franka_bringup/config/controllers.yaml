@@ -47,6 +47,9 @@ controller_manager:
     move_to_start_example_controller:
       type: franka_example_controllers/MoveToStartExampleController
 
+    move_to_start_multiverse_controller:
+      type: franka_example_controllers/MoveToStartMultiverseController
+
     model_example_controller:
       type: franka_example_controllers/ModelExampleController
 
@@ -119,23 +122,42 @@ joint_impedance_example_controller:
 joint_impedance_multiverse_controller:
   ros__parameters:
     k_gains:
-      - 24.0
-      - 24.0
-      - 24.0
-      - 24.0
-      - 10.0
-      - 6.0
-      - 2.0
+      - 800.0
+      - 800.0
+      - 800.0
+      - 800.0
+      - 250.0
+      - 150.0
+      - 50.0
     d_gains:
-      - 2.0
-      - 2.0
-      - 2.0
-      - 1.0
-      - 1.0
-      - 1.0
-      - 0.5
+      - 40.0
+      - 40.0
+      - 40.0
+      - 40.0
+      - 15.0
+      - 15.0
+      - 8.
 
 move_to_start_example_controller:
+  ros__parameters:
+    k_gains:
+      - 600.0
+      - 600.0
+      - 600.0
+      - 600.0
+      - 250.0
+      - 150.0
+      - 50.0
+    d_gains:
+      - 30.0
+      - 30.0
+      - 30.0
+      - 30.0
+      - 10.0
+      - 10.0
+      - 5.
+
+move_to_start_multiverse_controller:
   ros__parameters:
     k_gains:
       - 600.0
